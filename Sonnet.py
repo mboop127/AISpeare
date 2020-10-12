@@ -1,5 +1,25 @@
 import random
 
+def readDict(file):
+
+
+    dictionary = {}
+
+    f = open(file,'r')
+
+    end = 0
+
+    while end == 0:
+        temp = f.readline().split(',')
+        if temp[0] != '':
+            dictionary[temp[0]] = [float(temp[1])]
+        else:
+            end = 1
+
+    f.close()
+
+    return dictionary
+
 def deepcopy(From,To):
     for i in range(len(From)):
         To[i] = From[i]
@@ -13,59 +33,10 @@ def Sonnet(Neurons):
 
         gfail = gfail + 1
 
-        words = []
-        stats = []
-
-        pairs = []
-        paircount = []
-
-        AllWordsList = []
-        WordsCount = []
-
-        FIndex = []
-        Frequency = []
-
-        f = open("stats.txt",'r')
-
-        end = 0
-
-        while end == 0:
-            temp = f.readline().split(',')
-            if temp[0] != '':
-                words.append(temp[0])
-                stats.append(float(temp[1]))
-            else:
-                end = 1
-
-        f.close()
-
-        f = open("pairs.txt",'r')
-
-        end = 0
-
-        while end == 0:
-            temp = f.readline().split(',')
-            if temp[0] != '':
-                pairs.append(temp[0])
-                paircount.append(float(temp[1]))
-            else:
-                end = 1
-
-        f.close()
-
-        f = open("AllWords.txt",'r')
-
-        end = 0
-
-        while end == 0:
-            temp = f.readline().split(',')
-            if temp[0] != '':
-                AllWordsList.append(temp[0])
-                WordsCount.append(float(temp[1]))
-            else:
-                end = 1
-
-        f.close()
+        AvgLocation = readDict('stats.txt')
+        Pairs = readDict('pairs.txt')
+        Frequency = readDict('AllWords.txt')
+        Stdev = readDict('stdev.txt')
 
         length = 6
 
@@ -171,20 +142,25 @@ def Sonnet(Neurons):
                         output.append(ChosenWords[int(temp%(len(ChosenWords)-1))])
 
                         for a in range(len(output)):
-                            guess = guess -abs(stats[words.index(output[a])]  - a)/100 * Neurons[1] + WordsCount[AllWordsList.index(output[a])] * Neurons[2]
+                            a1 = AvgLocation[output[a]]
+                            a2 = Frequency[output[a]]
+                            a3 = Stdev[output[a]]
+
+                            guess = guess -abs(a1[0]  - a)/100 * Neurons[1] + a2[0] * Neurons[2] + a3[0] * Neurons[3]
 
                             try:
                                 temptext = output[i - 1] + " " + output[i]
                                 try:
-                                    guess = guess + paircount[pairs.index(temptext)] * Neurons[3]
-                                except ValueError:
+                                    a4 = Pairs[temptext]
+                                    guess = guess + a4[0] * Neurons[4]
+                                except KeyError:
                                     guess = guess
                             except IndexError:
                                 guess = guess
 
                         text = text + " " + str(output[i])
 
-                    if guess > Neurons[4]:
+                    if guess > Neurons[5]:
                         scoreList.append(1 + min(guess-Neurons[4],40)/10000)
                     else:
                         scoreList.append(0)
@@ -277,62 +253,13 @@ def Detector(Fakes):
     score = -1000
     fail = 0
 
-    words = []
-    stats = []
-
-    pairs = []
-    paircount = []
-
-    AllWordsList = []
-    WordsCount = []
-
-    FIndex = []
-    Frequency = []
+    AvgLocation = readDict('stats.txt')
+    Pairs = readDict('pairs.txt')
+    Frequency = readDict('AllWords.txt')
+    Stdev = readDict('stdev.txt')
 
     Real = []
     Fake = []
-
-    f = open("stats.txt",'r')
-
-    end = 0
-
-    while end == 0:
-        temp = f.readline().split(',')
-        if temp[0] != '':
-            words.append(temp[0])
-            stats.append(float(temp[1]))
-        else:
-            end = 1
-
-    f.close()
-
-    f = open("pairs.txt",'r')
-
-    end = 0
-
-    while end == 0:
-        temp = f.readline().split(',')
-        if temp[0] != '':
-            pairs.append(temp[0])
-            paircount.append(float(temp[1]))
-        else:
-            end = 1
-
-    f.close()
-
-    f = open("AllWords.txt",'r')
-
-    end = 0
-
-    while end == 0:
-        temp = f.readline().split(',')
-        if temp[0] != '':
-            AllWordsList.append(temp[0])
-            WordsCount.append(float(temp[1]))
-        else:
-            end = 1
-
-    f.close()
 
     f = open("Sonnets.txt",'r')
 
@@ -400,13 +327,19 @@ def Detector(Fakes):
                 guess = Neurons[0]
 
                 for a in range(len(temp)):
-                    guess = guess -abs(stats[words.index(temp[a])]  - a)/100 * Neurons[1] + WordsCount[AllWordsList.index(temp[a])] * Neurons[2]
+
+                    a1 = AvgLocation[temp[a]]
+                    a2 = Frequency[temp[a]]
+                    a3 = Stdev[temp[a]]
+
+                    guess = guess -abs(a1[0]  - a)/100 * Neurons[1] + a2[0] * Neurons[2] + a3[0] * Neurons[3]
 
                     try:
                         temptext = temp[i - 1] + " " + temp[i]
                         try:
-                            guess = guess + paircount[pairs.index(temptext)] * Neurons[3]
-                        except ValueError:
+                            a4 = Pairs[temptext]
+                            guess = guess + a4[0] * Neurons[4]
+                        except KeyError:
                             guess = guess
                     except IndexError:
                         guess = guess
