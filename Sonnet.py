@@ -161,7 +161,7 @@ def Sonnet(Neurons):
                         text = text + " " + str(output[i])
 
                     if guess > Neurons[5]:
-                        scoreList.append(1 + min(guess-Neurons[4],40)/10000)
+                        scoreList.append(1 + min(guess-Neurons[5],40)/10000)
                     else:
                         scoreList.append(0)
 
@@ -321,7 +321,6 @@ def Detector(Fakes):
 
             for i in range(len(ShakeList)):
 
-                temp = 0
                 temp = ShakeList[i]
 
                 guess = Neurons[0]
@@ -346,15 +345,15 @@ def Detector(Fakes):
 
                 guessList.append(guess)
 
-                if guess > Neurons[4] and Rubric[i] == 1:
-                    scoreList.append(min(guess - Neurons[4],40)/10000 + 1)
-                elif guess < Neurons[4] and Rubric[i] == -1:
-                    scoreList.append(min(Neurons[4] - guess,40)/10000 + 1)
+                if guess > Neurons[5] and Rubric[i] == 1:
+                    scoreList.append(min(guess - Neurons[5],40)/10000 + 1)
+                elif guess < Neurons[5] and Rubric[i] == -1:
+                    scoreList.append(min(Neurons[5] - guess,40)/10000 + 1)
                     correct = correct + 1
-                elif guess > Neurons[4] and Rubric[i] == -1:
-                    scoreList.append(-abs(min(Neurons[4] - guess,40))/10000 - 2)
+                elif guess > Neurons[5] and Rubric[i] == -1:
+                    scoreList.append(-abs(min(Neurons[5] - guess,40))/10000 - 2)
                 else:
-                    scoreList.append(-abs(min(Neurons[4] - guess,40))/10000 - 1)
+                    scoreList.append(-abs(min(Neurons[5] - guess,40))/10000 - 1)
 
             score = sum(scoreList)
 
