@@ -1,5 +1,35 @@
 import random
 
+
+#next to fix: replace WordsReverse and ChosenWords with a dictionary of unique words where words:i for NN purposes and a list of (possibly repeating) words it can use for writing purposes
+
+def evaluate(Pairs, AvgLocation, Frequency, Stdev, output, Neurons, Syllables):
+
+    temp = output
+
+    guess = Neurons[0]
+
+    for a in range(len(temp)):
+
+        a1 = AvgLocation[temp[a]]
+        a2 = Frequency[temp[a]]
+        a3 = Stdev[temp[a]]
+        a4 = Syllables[temp[a]]
+
+        guess = guess -abs(a1[0]  - a)/100 * Neurons[1] + a2[0] * Neurons[2] + a3[0] * Neurons[3] + a * Neurons[4] + a4[0] * Neurons[5]
+
+        try:
+            temptext = temp[a - 1] + " " + temp[a]
+            try:
+                a5 = Pairs[temptext]
+                guess = guess + a5[0] * Neurons[6]
+            except KeyError:
+                guess = guess
+        except IndexError:
+            guess = guess
+
+    return guess
+
 def readDict(file):
 
 
@@ -25,7 +55,7 @@ def deepcopy(From,To):
         To[i] = From[i]
     return To
 
-def Sonnet(Neurons, tries, gseed):
+def Sonnet(Neurons, tries, gseed, gneuron1, gneuron2, gChosenWords):
 
     gfail = 0
 
@@ -35,6 +65,8 @@ def Sonnet(Neurons, tries, gseed):
     Pairs = readDict('pairs.txt')
     Frequency = readDict('AllWords.txt')
     Stdev = readDict('stdev.txt')
+    WordIndex = readDict('WordIndex.txt')
+    Syllables = readDict('Syllables.txt')
 
     length = 6
 
@@ -64,46 +96,31 @@ def Sonnet(Neurons, tries, gseed):
 
     Dictionary = list(dict.fromkeys(Dictionary))
 
-
-
     while gfail <tries:
 
         gfail = gfail + 1
         print("Current fails: " + str(gfail))
 
-        dictShuffle = []
-
-        for i in range(len(Dictionary)):
-            dictShuffle.append(i)
-
-        random.shuffle(dictShuffle)
-
         output = []
 
-        ChosenWords = []
-        Neuron1 =[]
-        Neuron2 = []
+        Neuron1 = gneuron1.copy()
+        Neuron2 = gneuron2.copy()
 
-        ChosenWordsParent = {}
-        Neuron1Parent = []
-        Neuron2Parent = []
+        Neuron1Parent = Neuron1.copy()
+        Neuron2Parent = Neuron2.copy()
+
+        ChosenWords = gChosenWords.copy()
+
+        ChosenWordsParent = ChosenWords.copy()
 
 
-        ChosenWords = {}
-        WordsReverse = {}
+        #for i in range(length):
+        #    Neuron1.append(random.uniform(.1,5))
+        #    Neuron1Parent.append(1)
 
-        for i in range(1000):
-            ChosenWords[Dictionary[dictShuffle[i]]] = i
-            ChosenWordsParent[i] = i
-        WordsReverse = {v: k for k, v in ChosenWords.items()}
-
-        for i in range(length):
-            Neuron1.append(random.uniform(.1,5))
-            Neuron1Parent.append(1)
-
-        for i in range(13):
-            Neuron2.append(random.uniform(.1,5))
-            Neuron2Parent.append(1)
+        #for i in range(13):
+        #    Neuron2.append(random.uniform(.1,5))
+        #    Neuron2Parent.append(1)
 
         best = -1000
 
@@ -115,19 +132,19 @@ def Sonnet(Neurons, tries, gseed):
             scoreList = []
             guess = 0
 
-            for i in range(length):
-                if random.random() < .05:
-                    Neuron1[i] = Neuron1[i] * random.uniform(.95,1.05)
+            if gfail != 0:
 
-            for i in range(len(Neuron2)):
-                if random.random() < .05:
-                    Neuron2[i] = Neuron2[i] * random.uniform(.95,1.05)
+                for i in range(length):
+                    if random.random() < .05:
+                        Neuron1[i] = Neuron1[i] * random.uniform(.95,1.05)
 
-            for i in range(len(ChosenWords)):
-                if random.random() < .05:
-                    ChosenWords[Dictionary[dictShuffle[i]]] = i
+                for i in range(len(Neuron2)):
+                    if random.random() < .05:
+                        Neuron2[i] = Neuron2[i] * random.uniform(.95,1.05)
 
-            WordsReverse = {v: k for k, v in ChosenWords.items()}
+                for i in range(len(ChosenWords)):
+                    if random.random() < .05:
+                        ChosenWords[i] = Dictionary[random.randint(1,len(Dictionary)-1)]
 
             for i in range(1000):
 
@@ -136,45 +153,37 @@ def Sonnet(Neurons, tries, gseed):
 
                 seed = gseed[i]
 
-                guess = Neurons[0]
-
                 for i in range(len(seed)):
 
                     temp = (seed[i] * Neuron1[0] + i * Neuron1[1] + i*seed[i]*Neuron1[2])
 
                     if i > 0:
-                        temp = temp + ChosenWords[output[0]] * Neuron2[0] + Neuron2[1]
+                        temp2,temp3 = WordIndex[output[0]], Syllables[output[0]]
+                        temp = temp + int(temp2[0]) * Neuron2[0] + Neuron2[1]*int(temp3[0]) + Neuron2[2]
                     if i > 1:
-                        temp = temp + ChosenWords[output[1]]* Neuron2[2] + 2*Neuron2[3]
+                        temp2,temp3 = WordIndex[output[1]], Syllables[output[1]]
+                        temp = temp + int(temp2[0]) * Neuron2[3] + Neuron2[4]*int(temp3[0]) + 2*Neuron2[5]
                     if i > 2:
-                        temp = temp + ChosenWords[output[2]] * Neuron2[4] + 3*Neuron2[5]
+                        temp2,temp3 = WordIndex[output[2]], Syllables[output[2]]
+                        temp = temp + int(temp2[0]) * Neuron2[6] + Neuron2[7]*int(temp3[0]) + 3*Neuron2[8]
                     if i > 3:
-                        temp = temp + ChosenWords[output[3]] * Neuron2[6] + 4*Neuron2[7]
+                        temp2,temp3 = WordIndex[output[3]], Syllables[output[3]]
+                        temp = temp + int(temp2[0]) * Neuron2[9] + Neuron2[10]*int(temp3[0]) + 4*Neuron2[11]
                     if i > 4:
-                        temp = temp + ChosenWords[output[4]] * Neuron2[8] + 5*Neuron2[9]
+                        temp2,temp3 = WordIndex[output[4]], Syllables[output[4]]
+                        temp = temp + int(temp2[0]) * Neuron2[12] + Neuron2[13]*int(temp3[0]) + 5*Neuron2[14]
                     if i > 5:
-                        temp = temp + ChosenWords[output[5]] * Neuron2[10] + 6*Neuron2[11]
+                        temp2,temp3 = WordIndex[output[5]], Syllables[output[5]]
+                        temp = temp + int(temp2[0]) * Neuron2[15] + Neuron2[16]*int(temp3[0]) + 6*Neuron2[17]
 
-                    output.append(WordsReverse[int(temp%(len(ChosenWords)-1))])
-
-                    for a in range(len(output)):
-                        a1 = AvgLocation[output[a]]
-                        a2 = Frequency[output[a]]
-                        a3 = Stdev[output[a]]
-
-                        guess = guess -abs(a1[0]  - a)/100 * Neurons[1] + a2[0] * Neurons[2] + a3[0] * Neurons[3]
-
-                        try:
-                            temptext = output[i - 1] + " " + output[i]
-                            try:
-                                a4 = Pairs[temptext]
-                                guess = guess + a4[0] * Neurons[4]
-                            except KeyError:
-                                guess = guess
-                        except IndexError:
-                            guess = guess
+                    output.append(ChosenWords[int(temp%(len(ChosenWords)-1))])
 
                     text = text + " " + str(output[i])
+
+                temp = text.split(' ')
+                while("" in temp) :
+                    temp.remove("")
+                guess = evaluate(Pairs, AvgLocation, Frequency, Stdev, temp, Neurons, Syllables)
 
                 if guess > Neurons[5]:
                     scoreList.append(1 + min(guess-Neurons[5],40)/10000)
@@ -206,13 +215,17 @@ def Sonnet(Neurons, tries, gseed):
                         f.write(str(Neuron2[i]) + ",")
                     f.write('\n')
                     for i in range(len(ChosenWords)):
-                        f.write("'" + WordsReverse[i] + "'" + ",")
+                        f.write("'" + ChosenWords[i] + "'" + ",")
                     f.write('\n')
 
                     f.close()
 
                     print(text)
                     print("New Best:" + str(score))
+
+                    gneuron1 = Neuron1.copy()
+                    gneuron2 = Neuron2.copy()
+                    gChosenWords = ChosenWords.copy()
 
                     FP = []
 
@@ -230,19 +243,25 @@ def Sonnet(Neurons, tries, gseed):
                             temp = (seed[i] * Neuron1[0] + i * Neuron1[1] + i*seed[i]*Neuron1[2])
 
                             if i > 0:
-                                temp = temp + ChosenWords[output[0]] * Neuron2[0] + Neuron2[1]
+                                temp2,temp3 = WordIndex[output[0]], Syllables[output[0]]
+                                temp = temp + int(temp2[0]) * Neuron2[0] + Neuron2[1]*int(temp3[0]) + Neuron2[2]
                             if i > 1:
-                                temp = temp + ChosenWords[output[1]]* Neuron2[2] + 2*Neuron2[3]
+                                temp2,temp3 = WordIndex[output[1]], Syllables[output[1]]
+                                temp = temp + int(temp2[0]) * Neuron2[3] + Neuron2[4]*int(temp3[0]) + 2*Neuron2[5]
                             if i > 2:
-                                temp = temp + ChosenWords[output[2]] * Neuron2[4] + 3*Neuron2[5]
+                                temp2,temp3 = WordIndex[output[2]], Syllables[output[2]]
+                                temp = temp + int(temp2[0]) * Neuron2[6] + Neuron2[7]*int(temp3[0]) + 3*Neuron2[8]
                             if i > 3:
-                                temp = temp + ChosenWords[output[3]] * Neuron2[6] + 4*Neuron2[7]
+                                temp2,temp3 = WordIndex[output[3]], Syllables[output[3]]
+                                temp = temp + int(temp2[0]) * Neuron2[9] + Neuron2[10]*int(temp3[0]) + 4*Neuron2[11]
                             if i > 4:
-                                temp = temp + ChosenWords[output[4]] * Neuron2[8] + 5*Neuron2[9]
+                                temp2,temp3 = WordIndex[output[4]], Syllables[output[4]]
+                                temp = temp + int(temp2[0]) * Neuron2[12] + Neuron2[13]*int(temp3[0]) + 5*Neuron2[14]
                             if i > 5:
-                                temp = temp + ChosenWords[output[5]] * Neuron2[10] + 6*Neuron2[11]
+                                temp2,temp3 = WordIndex[output[5]], Syllables[output[5]]
+                                temp = temp + int(temp2[0]) * Neuron2[15] + Neuron2[16]*int(temp3[0]) + 6*Neuron2[17]
 
-                            output.append(WordsReverse[int(temp%(len(ChosenWords)-1))])
+                            output.append(ChosenWords[int(temp%(len(ChosenWords)-1))])
                             text = text + " " + str(output[i])
 
                         FP.append(text)
@@ -260,9 +279,9 @@ def Sonnet(Neurons, tries, gseed):
     for i in range(len(FP)):
         f.write(str(FP[i]) + '\n')
     f.close()
-    return FP
+    return [FP,gneuron1,gneuron2,gChosenWords]
 
-def Detector(Fakes, tries):
+def Detector(Fakes, tries, GNeurons):
 
     gfail = 0
 
@@ -278,6 +297,7 @@ def Detector(Fakes, tries):
     Pairs = readDict('pairs.txt')
     Frequency = readDict('AllWords.txt')
     Stdev = readDict('stdev.txt')
+    Syllables = readDict('Syllables.txt')
 
     Real = []
     Fake = []
@@ -316,17 +336,9 @@ def Detector(Fakes, tries):
 
         fail = 0
 
-        Neurons = []
-        NeuronsParent = []
-        GNeurons = []
+        Neurons = GNeurons.copy()
 
-        for i in range(6):
-            Neurons.append(random.randint(0,100))
-            NeuronsParent.append(1)
-            GNeurons.append(1)
-
-        deepcopy(Neurons,NeuronsParent)
-
+        NeuronsParent = Neurons.copy()
         #print("New Species")
 
         while fail < 500:
@@ -347,25 +359,7 @@ def Detector(Fakes, tries):
 
                 temp = ShakeList[i]
 
-                guess = Neurons[0]
-
-                for a in range(len(temp)):
-
-                    a1 = AvgLocation[temp[a]]
-                    a2 = Frequency[temp[a]]
-                    a3 = Stdev[temp[a]]
-
-                    guess = guess -abs(a1[0]  - a)/100 * Neurons[1] + a2[0] * Neurons[2] + a3[0] * Neurons[3]
-
-                    try:
-                        temptext = temp[i - 1] + " " + temp[i]
-                        try:
-                            a4 = Pairs[temptext]
-                            guess = guess + a4[0] * Neurons[4]
-                        except KeyError:
-                            guess = guess
-                    except IndexError:
-                        guess = guess
+                guess = evaluate(Pairs, AvgLocation, Frequency, Stdev, temp, Neurons, Syllables)
 
                 guessList.append(guess)
 
