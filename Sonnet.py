@@ -65,7 +65,7 @@ def Sonnet(Neurons, tries, gseed, gneuron1, gneuron2, gChosenWords):
     Pairs = readDict('pairs.txt')
     Frequency = readDict('AllWords.txt')
     Stdev = readDict('stdev.txt')
-    WordIndex = readDict('WordIndex.txt')
+    WordIndex = readDict('wordIndex.txt')
     Syllables = readDict('Syllables.txt')
 
     length = 6
