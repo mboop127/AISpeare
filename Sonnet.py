@@ -1,8 +1,5 @@
 import random
 
-
-#next to fix: replace WordsReverse and ChosenWords with a dictionary of unique words where words:i for NN purposes and a list of (possibly repeating) words it can use for writing purposes
-
 def evaluate(Pairs, AvgLocation, Frequency, Stdev, output, Neurons, Syllables):
 
     temp = output
@@ -152,7 +149,7 @@ def Sonnet(Neurons, tries, gseed, gneuron1, gneuron2, gChosenWords,glength):
                     if random.random() < .05:
                         length[i] = random.randint(5,9)
 
-            for a in range(1000):
+            for a in range(2100):
 
                 text = ''
                 output = []

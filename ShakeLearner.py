@@ -13,7 +13,7 @@ Neurons = []
 
 length = []
 
-tries = 1
+tries = 20
 
 f = open("Sonnets.txt",'r')
 Dictionary = f.read().replace('\n', ' ')
